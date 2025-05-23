@@ -16,12 +16,35 @@ export class EnvironmentService {
   async findAll(token: string, owner: string, repo: string): Promise<EnvironmentDto[]> {
     try {
       const octokit = this.githubService.createOctokitClient(token);
-      const { data } = await octokit.repos.getAllEnvironments({
-        owner,
-        repo,
-      });
 
-      return data.environments || [];
+      // Use pagination to get all environments
+      const environments: EnvironmentDto[] = [];
+      let page = 1;
+      const perPage = 100; // Maximum allowed per page
+
+      while (true) {
+        const { data } = await octokit.repos.getAllEnvironments({
+          owner,
+          repo,
+          per_page: perPage,
+          page: page,
+        });
+
+        if (!data.environments || data.environments.length === 0) {
+          break;
+        }
+
+        environments.push(...data.environments);
+
+        // If we got fewer environments than the page size, we've reached the end
+        if (data.environments.length < perPage) {
+          break;
+        }
+
+        page++;
+      }
+
+      return environments;
     } catch (error) {
       if (error.status === 404) {
         throw new NotFoundException(`Repository ${owner}/${repo} not found`);
