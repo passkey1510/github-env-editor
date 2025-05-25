@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { GithubService } from '../github.service';
-import { CreateEnvironmentDto, EnvironmentDto } from '../dto/environment.dto';
+import { CreateEnvironmentDto, EnvironmentDto, BulkDeleteEnvironmentsDto } from '../dto/environment.dto';
 
 @Injectable()
 export class EnvironmentService {
@@ -121,5 +121,44 @@ export class EnvironmentService {
       }
       throw error;
     }
+  }
+
+  /**
+   * Delete multiple environments
+   * @param token GitHub personal access token
+   * @param owner Repository owner
+   * @param repo Repository name
+   * @param environmentNames Array of environment names to delete
+   * @returns Array of results with success/failure status for each environment
+   */
+  async bulkRemove(
+    token: string,
+    owner: string,
+    repo: string,
+    environmentNames: string[]
+  ): Promise<{ name: string; success: boolean; error?: string }[]> {
+    const results: { name: string; success: boolean; error?: string }[] = [];
+    const octokit = this.githubService.createOctokitClient(token);
+
+    for (const name of environmentNames) {
+      try {
+        await octokit.repos.deleteAnEnvironment({
+          owner,
+          repo,
+          environment_name: name,
+        });
+        results.push({ name, success: true });
+      } catch (error) {
+        let errorMessage = 'Unknown error';
+        if (error.status === 404) {
+          errorMessage = `Environment ${name} not found`;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        results.push({ name, success: false, error: errorMessage });
+      }
+    }
+
+    return results;
   }
 }

@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { EnvironmentService } from './environment.service';
-import { CloneEnvironmentDto, CreateEnvironmentDto, EnvironmentDto } from '../dto/environment.dto';
+import { CloneEnvironmentDto, CreateEnvironmentDto, EnvironmentDto, BulkDeleteEnvironmentsDto } from '../dto/environment.dto';
 import { GithubToken } from '../decorators/github-token.decorator';
 import { VariableService } from '../variable/variable.service';
 
@@ -69,6 +69,46 @@ export class EnvironmentController {
     @Param('name') name: string,
   ): Promise<void> {
     return this.environmentService.remove(token, owner, repo, name);
+  }
+
+  @Post('bulk-delete')
+  @ApiOperation({ summary: 'Delete multiple environments' })
+  @ApiParam({ name: 'owner', description: 'Repository owner' })
+  @ApiParam({ name: 'repo', description: 'Repository name' })
+  @ApiBody({ type: BulkDeleteEnvironmentsDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Bulk delete results',
+    schema: {
+      type: 'object',
+      properties: {
+        results: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              success: { type: 'boolean' },
+              error: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+  })
+  async bulkRemove(
+    @GithubToken() token: string,
+    @Param('owner') owner: string,
+    @Param('repo') repo: string,
+    @Body() bulkDeleteDto: BulkDeleteEnvironmentsDto,
+  ): Promise<{ results: { name: string; success: boolean; error?: string }[] }> {
+    const results = await this.environmentService.bulkRemove(
+      token,
+      owner,
+      repo,
+      bulkDeleteDto.environmentNames
+    );
+    return { results };
   }
 
   @Post(':name/clone')

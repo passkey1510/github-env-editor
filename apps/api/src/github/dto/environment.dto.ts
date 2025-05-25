@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsArray, ArrayNotEmpty } from 'class-validator';
 
 export class EnvironmentDto {
   @ApiProperty({ description: 'Environment name' })
@@ -35,4 +35,13 @@ export class CloneEnvironmentDto {
   @IsString()
   @IsNotEmpty()
   targetEnvironment: string;
+}
+
+export class BulkDeleteEnvironmentsDto {
+  @ApiProperty({ description: 'Array of environment names to delete', type: [String] })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  environmentNames: string[];
 }

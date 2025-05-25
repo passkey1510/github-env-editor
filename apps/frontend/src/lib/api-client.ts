@@ -86,6 +86,18 @@ export class ApiClient {
     await this.client.delete(`/repositories/${owner}/${repo}/environments/${name}`);
   }
 
+  async bulkDeleteEnvironments(
+    owner: string,
+    repo: string,
+    environmentNames: string[]
+  ): Promise<{ results: { name: string; success: boolean; error?: string }[] }> {
+    const response = await this.client.post(
+      `/repositories/${owner}/${repo}/environments/bulk-delete`,
+      { environmentNames }
+    );
+    return response.data;
+  }
+
   async cloneEnvironment(
     owner: string,
     repo: string,
