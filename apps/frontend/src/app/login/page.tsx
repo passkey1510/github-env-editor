@@ -84,7 +84,7 @@ export default function LoginPage() {
                 <input
                   id="token"
                   type="password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white text-gray-900 placeholder-gray-500"
                   placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
                   {...register('token')}
                   disabled={isLoading}
